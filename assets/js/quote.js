@@ -1,7 +1,7 @@
 $(document).ready(function () {
     $("#numElev_2, #numElev_3, #elevPriceUnit, #elevTotal, #installationFee, #total_").attr('readonly', true);
 
-    var numApp, numFloors, numBase, maxOcc;
+    var numApp = 0, numFloors = 0, numBase = 0, maxOcc = 0, numElev = 0;
     var prodRange = {
         type: null,
         price: null,
@@ -13,7 +13,7 @@ $(document).ready(function () {
     });
 
 
-    $('#standart, #premium, #excelium').on('click', function () {
+    $('#standard, #premium, #excelium').on('click', function () {
         document.getElementById('elevPriceUnit').value = (7565).toFixed(2) + " $";
         doCalc();
     });
@@ -75,9 +75,11 @@ $(document).ready(function () {
     };
 
     function GetInfos() {
+        getInfoNumApp();
         getInfoNumFloors();
         getInfoNumBase();
         getInfoNumElev();
+        console.log("numElev = " + numElev);
         getInfoMaxOcc();
         getProdRange();
     };
@@ -98,9 +100,24 @@ $(document).ready(function () {
     };
 
     function createFormData(projectType) {
+        console.log("project type = " + projectType);
+        console.log("numApp = " + numApp);
+        console.log("numFloors = " + numFloors);
+        console.log("numElev = " + numElev);
+        /*if (projectType == 'residental') {
+            console.log("numApp = " + numApp);
+            console.log("numFloors = " + numFloors);
+            return {
+                numberApp: numApp,
+                numberFloors: numFloors,
+                productRange: prodRange,
+                productType: projectType
+            }
+        }*/
         return {
             numberApp: numApp,
             numberFloors: numFloors,
+            numberElev: numElev,
             numberBase: numBase,
             maximumOcc: maxOcc,
             productRange: prodRange,
@@ -159,9 +176,19 @@ $(document).ready(function () {
         //Getting numbers from quote
         GetInfos();
 
+        console.log("projectType = " + projectType);
+
         //Preparing data for Api call
         formData = createFormData(projectType)
 
+        console.log("formData.numberApp = " + formData.numberApp);
+        console.log("formData.numberFloors = " + formData.numberFloors);
+        console.log("formData.numberBase = " + formData.numberBase);
+        console.log("formData.productRange = " + formData.productRange);
+        console.log("formData.projectType = " + formData.projectType);
+        //console.log("data.finalNumElev = " + data.finalNumElev);
+
+        console.log(formData);
         $.ajax({
             type: "POST",
             // url: 'http://localhost:3000/api/quoteCalculation/', //for local testing
@@ -181,10 +208,12 @@ $(document).ready(function () {
     function doCalc() {
         if ($('#residential').hasClass('active') && !negativeValues() && $('#numApp').val() && $('#numFloors').val()) {
             apiCall('residential')
-        } else if ($('#commercial').hasClass('active') && !negativeValues() && $('#numElev').val()  && $('#numPark').val()) {
+        } else if ($('#commercial').hasClass('active') && !negativeValues() && $('#numElev').val()/*  && $('#numPark').val() */) {
             apiCall('commercial')
         } else if ($('#corporate').hasClass('active') && !negativeValues() && $('#numFloors').val() && $('#numBase').val() && $('#maxOcc').val()) {
-            apiCall('commercial')
+            apiCall('corporate')
+        } else if ($('#hybrid').hasClass('active') && !negativeValues() && $('#numFloors').val() && $('#numBase').val() && $('#maxOcc').val()) {
+            apiCall('hybrid')
         } else {
             emptyElevatorsNumberAndPricesFields();
         };
